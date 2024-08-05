@@ -3,8 +3,7 @@ package com.cinzogoni.springsecuritycustomform.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.Collection;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -16,12 +15,12 @@ public class User {
     @Column(name = "username")
     private String username;
 
-    @Column(name = "password", nullable = false)
+    @Column(name = "password")
     private String password;
 
-    @Column(name = "enabled", nullable = false)
+    @Column(name = "enabled")
     private boolean enabled;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private Collection<Authority> authorities;
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private Set<Authority> authorities;
 }

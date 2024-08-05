@@ -1,10 +1,11 @@
 package com.cinzogoni.springsecuritycustomform.config;
 
-import com.cinzogoni.springsecuritycustomform.service.CustomUserDetailsService;
-import lombok.Getter;
-import lombok.Setter;
+import com.cinzogoni.springsecuritycustomform.services.CustomUserDetailsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.LogoutConfigurer;
@@ -16,14 +17,13 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 
 @Configuration
 @EnableWebSecurity
-@Getter
-@Setter
 public class SecurityConfig {
 
-    private final CustomUserDetailsService userDetailsService;
+    private final CustomUserDetailsService customUserDetailsService;
 
-    public SecurityConfig(CustomUserDetailsService userDetailsService) {
-        this.userDetailsService = userDetailsService;
+    @Autowired
+    public SecurityConfig(CustomUserDetailsService customUserDetailsService) {
+        this.customUserDetailsService = customUserDetailsService;
     }
 
     @Bean
@@ -39,11 +39,11 @@ public class SecurityConfig {
 
         http
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/showMyLoginPage").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
-                        .requestMatchers("/employees/showForm").hasAnyRole("ADMIN","MANAGER")
-                        .requestMatchers("/employees/showForm").hasAnyRole("ADMIN","MANAGER")
-                        .requestMatchers("/employees/delete").hasAnyRole("ADMIN")
-                        .requestMatchers("/employees/**").hasAnyRole("EMPLOYEE")
+                        .requestMatchers("/employees/showForm").hasAnyAuthority("ADMIN", "MANAGER")
+                        .requestMatchers("/employees/delete").hasAuthority("ADMIN")
+                        .requestMatchers("/employees/**").hasAuthority("EMPLOYEE")
                         .requestMatchers("/resources/**")
                         .permitAll()
                 )
@@ -58,7 +58,7 @@ public class SecurityConfig {
                         .accessDeniedHandler(accessDeniedHandler)
 
                 )
-                .userDetailsService(userDetailsService);
+                .authenticationProvider(authenticationProvider());
         return http.build();
     }
 
@@ -67,5 +67,13 @@ public class SecurityConfig {
             String redirectUrl = "/home";
             response.sendRedirect(redirectUrl);
         };
+    }
+
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(customUserDetailsService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
     }
 }

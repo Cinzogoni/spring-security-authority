@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
 @Controller
-@RequestMapping("/employees")
+@RequestMapping("api/spring_security/employees")
 public class EmployeeController {
 
     private final EmployeeRepository employeeRepository;
@@ -31,7 +31,7 @@ public class EmployeeController {
         return "redirect:/employees/list";
     }
 
-    @PostMapping("/delate")
+    @PostMapping("/delete")
     public String deleteEmployee(@ModelAttribute("employee") Employee employee) {
         employeeRepository.delete(employee);
         return "redirect:/employees/list";
@@ -56,6 +56,4 @@ public class EmployeeController {
         theModel.addAttribute("employee", theEmployee);
         return "employees/employee-form";
     }
-
-
 }

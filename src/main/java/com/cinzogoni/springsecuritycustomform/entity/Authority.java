@@ -13,12 +13,12 @@ public class Authority {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private int id;
+    private long id;
 
-    @Column(name = "authority", nullable = false)
+    @Column(name = "authority")
     private String authority;
 
     @ManyToOne
-    @JoinColumn(name = "username", nullable = false)
+    @JoinColumn(name = "username", referencedColumnName = "username", nullable = false)
     private User user;
 }
