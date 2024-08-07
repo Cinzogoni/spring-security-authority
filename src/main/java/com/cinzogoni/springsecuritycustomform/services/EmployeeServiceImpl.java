@@ -40,12 +40,10 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public List<Employee> SearchBy(String theName) {
-
         if (theName != null && !theName.trim().isEmpty()) {
             return employeeRepository.findByFirstNameContainsOrLastNameAllIgnoreCase(theName, theName);
         }
-        else {
+        else
             return findAll();
-        }
     }
 }
