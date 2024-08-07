@@ -46,6 +46,7 @@ public class SecurityConfig {
                         .requestMatchers("/employees/**").hasAuthority("EMPLOYEE")
                         .requestMatchers("/resources/**")
                         .permitAll()
+                        .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/showMyLoginPage")
