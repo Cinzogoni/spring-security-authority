@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.LogoutConfigurer;
@@ -13,17 +14,24 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+
+import javax.sql.DataSource;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
+    private final DataSource dataSource;
 
     @Autowired
-    public SecurityConfig(CustomUserDetailsService customUserDetailsService) {
+    public SecurityConfig(CustomUserDetailsService customUserDetailsService, DataSource dataSource) {
         this.customUserDetailsService = customUserDetailsService;
+        this.dataSource = dataSource;
+    }
+    @Autowired
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.jdbcAuthentication().dataSource(dataSource);
     }
 
     @Bean
@@ -39,11 +47,11 @@ public class SecurityConfig {
 
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/showMyLoginPage").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
                         .requestMatchers("/employees/showForm").hasAnyAuthority("ADMIN", "MANAGER")
+                        .requestMatchers("/employees/save").hasAnyAuthority("ADMIN", "MANAGER")
                         .requestMatchers("/employees/delete").hasAuthority("ADMIN")
-                        .requestMatchers("/employees/**").hasAuthority("EMPLOYEE")
+                        .requestMatchers("/employees/**").hasAnyAuthority("EMPLOYEE", "ADMIN", "MANAGER")
                         .requestMatchers("/resources/**")
                         .permitAll()
                         .anyRequest().authenticated()
@@ -51,7 +59,7 @@ public class SecurityConfig {
                 .formLogin(form -> form
                         .loginPage("/showMyLoginPage")
                         .loginProcessingUrl("/authenticateTheUser")
-                        .successHandler(customAuthenticationSuccessHandler())
+                        .defaultSuccessUrl("/employees/list", true)
                         .permitAll()
                 )
                 .logout(LogoutConfigurer::permitAll)
@@ -61,13 +69,6 @@ public class SecurityConfig {
                 )
                 .authenticationProvider(authenticationProvider());
         return http.build();
-    }
-
-    public AuthenticationSuccessHandler customAuthenticationSuccessHandler() {
-        return (request, response, authentication) -> {
-            String redirectUrl = "/home";
-            response.sendRedirect(redirectUrl);
-        };
     }
 
     @Bean

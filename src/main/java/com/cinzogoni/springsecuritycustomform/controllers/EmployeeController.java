@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
 @Controller
-@RequestMapping("api/spring_security/employees")
+@RequestMapping("/employees")
 public class EmployeeController {
 
     private final EmployeeRepository employeeRepository;
